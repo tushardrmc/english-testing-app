@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { requireAdmin } from "@/lib/supabase/admin";
+import {
+  getAdminContextFromToken,
+  getBearerToken,
+  requireAdmin,
+} from "@/lib/supabase/admin";
 
 function anonClient() {
   return createClient(
@@ -10,12 +14,22 @@ function anonClient() {
 }
 
 /** List tests (public read via RLS). */
-export async function GET() {
+export async function GET(request: Request) {
   const supabase = anonClient();
-  const { data, error } = await supabase
+  const token = getBearerToken(request);
+  const maybeAdmin = await getAdminContextFromToken(token);
+  const isAdmin = !("error" in maybeAdmin);
+
+  let query = supabase
     .from("tests")
-    .select("id, title, duration_minutes, created_at")
+    .select("id, title, duration_minutes, is_published, published_at, created_at")
     .order("created_at", { ascending: false });
+
+  if (!isAdmin) {
+    query = query.eq("is_published", true);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -42,6 +56,8 @@ export async function POST(request: Request) {
         {
           title: payload.title,
           duration_minutes: payload.durationMinutes ?? 60,
+          is_published: false,
+          published_at: null,
         },
       ])
       .select()
@@ -65,7 +81,15 @@ export async function POST(request: Request) {
 
       if (qError) throw qError;
 
-      const optionsToInsert = (q.options || []).map(
+      const options = q.options || [];
+      const correctCount = options.filter(
+        (o: { isCorrect: boolean }) => o.isCorrect
+      ).length;
+      if (correctCount !== 1) {
+        throw new Error("Each question must have exactly one correct option.");
+      }
+
+      const optionsToInsert = options.map(
         (o: { text: string; isCorrect: boolean }) => ({
           question_id: qData.id,
           text: o.text,

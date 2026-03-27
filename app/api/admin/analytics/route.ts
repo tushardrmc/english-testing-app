@@ -72,7 +72,8 @@ export async function GET(request: Request) {
 
   const { count: profileCount } = await admin
     .from("profiles")
-    .select("*", { count: "exact", head: true });
+    .select("*", { count: "exact", head: true })
+    .eq("role", "student");
 
   return NextResponse.json({
     chart: {

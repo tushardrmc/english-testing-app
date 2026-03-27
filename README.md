@@ -93,6 +93,11 @@ You need a **GitHub** account (free) so Vercel can pull your code. If the projec
 
 ## Troubleshooting
 
+- If you already deployed before this update, run these SQL statements in Supabase once:
+  - `ALTER TABLE public.tests ADD COLUMN IF NOT EXISTS is_published BOOLEAN NOT NULL DEFAULT FALSE;`
+  - `ALTER TABLE public.tests ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ;`
+  - `DROP POLICY IF EXISTS "Allow public read access to tests" ON public.tests;`
+  - `CREATE POLICY "Allow public read access to published tests" ON public.tests FOR SELECT USING (is_published = TRUE);`
 - **TypeScript / `.next/types` errors:** Run `npm run build` or `npm run dev` once. If you deleted the `.next` folder, also delete `tsconfig.tsbuildinfo` if it exists.
 - **Trigger error in SQL:** In `supabase-schema.sql`, if `EXECUTE PROCEDURE` fails, try `EXECUTE FUNCTION` for `handle_new_user` (depends on Postgres version).
 - **First user is not admin:** Use a fresh Supabase project, or check in Supabase **Table Editor** → `profiles` that your user has `role` = `admin`.

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { formatTestForClient } from "@/lib/test-format";
+import { getAdminContextFromToken, getBearerToken } from "@/lib/supabase/admin";
 
 function anonClient() {
   return createClient(
@@ -10,13 +11,16 @@ function anonClient() {
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
   const supabase = anonClient();
+  const token = getBearerToken(request);
+  const maybeAdmin = await getAdminContextFromToken(token);
+  const isAdmin = !("error" in maybeAdmin);
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("tests")
     .select(
       `
@@ -37,8 +41,13 @@ export async function GET(
       )
     `
     )
-    .eq("id", id)
-    .maybeSingle();
+    .eq("id", id);
+
+  if (!isAdmin) {
+    query = query.eq("is_published", true);
+  }
+
+  const { data, error } = await query.maybeSingle();
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

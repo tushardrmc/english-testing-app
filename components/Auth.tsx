@@ -72,7 +72,7 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
               setIsLogin(!isLogin);
               setError("");
             }}
-            className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
+            className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors cursor-pointer underline underline-offset-2"
           >
             {isLogin
               ? "register for a new account"

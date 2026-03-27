@@ -13,9 +13,12 @@ export function createAdminClient() {
   );
 }
 
-export async function requireAdmin(request: Request) {
+export function getBearerToken(request: Request) {
   const authHeader = request.headers.get("authorization");
-  const token = authHeader?.replace(/^Bearer\s+/i, "");
+  return authHeader?.replace(/^Bearer\s+/i, "");
+}
+
+export async function getAdminContextFromToken(token?: string | null) {
   if (!token) {
     return { error: "Unauthorized" as const, status: 401 };
   }
@@ -41,4 +44,9 @@ export async function requireAdmin(request: Request) {
   }
 
   return { user, admin };
+}
+
+export async function requireAdmin(request: Request) {
+  const token = getBearerToken(request);
+  return getAdminContextFromToken(token);
 }

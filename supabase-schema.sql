@@ -25,8 +25,16 @@ CREATE TABLE IF NOT EXISTS public.tests (
   id UUID DEFAULT gen_random_uuid () PRIMARY KEY,
   title TEXT NOT NULL,
   duration_minutes INTEGER NOT NULL DEFAULT 60,
+  is_published BOOLEAN NOT NULL DEFAULT FALSE,
+  published_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, NOW()) NOT NULL
 );
+
+ALTER TABLE public.tests
+  ADD COLUMN IF NOT EXISTS is_published BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE public.tests
+  ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ;
 
 CREATE TABLE IF NOT EXISTS public.questions (
   id UUID DEFAULT gen_random_uuid () PRIMARY KEY,
@@ -60,9 +68,10 @@ ALTER TABLE public.questions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.options ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.test_results ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow public read access to tests"
+DROP POLICY IF EXISTS "Allow public read access to tests" ON public.tests;
+CREATE POLICY "Allow public read access to published tests"
   ON public.tests FOR SELECT
-  USING (TRUE);
+  USING (is_published = TRUE);
 
 CREATE POLICY "Allow public read access to questions"
   ON public.questions FOR SELECT
