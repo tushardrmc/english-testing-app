@@ -78,7 +78,22 @@ export default function TestingEngine({ testId }: { testId: string }) {
     if (!hasStarted || timeLeft === null || timeLeft <= 0 || result) return;
 
     const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev !== null && prev > 0 ? prev - 1 : 0));
+      setTimeLeft((prev) => {
+        if (prev === null || prev <= 0) return 0;
+        const newTime = prev - 1;
+        
+        // Show warning when 5 minutes remaining
+        if (newTime === 300 && !result) {
+          alert("Warning: 5 minutes remaining!");
+        }
+        
+        // Show warning when 1 minute remaining
+        if (newTime === 60 && !result) {
+          alert("Warning: 1 minute remaining!");
+        }
+        
+        return newTime;
+      });
     }, 1000);
 
     return () => clearInterval(timer);
@@ -101,8 +116,8 @@ export default function TestingEngine({ testId }: { testId: string }) {
       const data = await response.json();
       setResult(data);
     } catch (err) {
-      console.error(err);
-      alert("Failed to submit test. Please try again.");
+      console.error("Test submission error:", err);
+      alert("Failed to submit test. Please check your connection and try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -336,6 +351,8 @@ export default function TestingEngine({ testId }: { testId: string }) {
             "flex items-center gap-2 px-3 py-1.5 rounded-lg font-mono font-bold text-lg",
             timeLeft !== null && timeLeft < 60
               ? "bg-red-100 text-red-700 animate-pulse"
+              : timeLeft !== null && timeLeft < 300
+              ? "bg-amber-100 text-amber-700"
               : "bg-slate-100 text-slate-700"
           )}
         >

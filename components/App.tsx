@@ -160,12 +160,7 @@ export default function App() {
       </nav>
 
       {user.role === "admin" ? (
-        <AdminDashboard
-          user={user}
-          onProfileUpdated={(name) =>
-            setUser((prev) => (prev ? { ...prev, name } : prev))
-          }
-        />
+        <AdminDashboard user={user} />
       ) : testsLoading ? (
         <div className="flex items-center justify-center min-h-[40vh]">
           <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
