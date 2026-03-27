@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import AdminDashboard from "@/components/AdminDashboard";
 import TestingEngine from "@/components/TestingEngine";
 import Auth from "@/components/Auth";
+import BrandLogo from "@/components/BrandLogo";
 import {
   GraduationCap,
   Settings,
@@ -114,25 +115,24 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <div className="flex-shrink-0 flex items-center gap-2">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-600 text-white font-bold text-lg shadow-sm">
-                  E
-                </div>
-                <span className="text-xl font-bold text-slate-900 hidden sm:block">
-                  EnglishTestPro
-                </span>
+              <div className="flex-shrink-0 flex items-center">
+                <BrandLogo
+                  priority
+                  className="w-[170px] sm:w-[220px]"
+                  imageClassName="object-contain"
+                />
               </div>
               <div className="ml-8 flex space-x-8">
                 {user.role === "student" && (
                   <div className="inline-flex items-center px-1 pt-1 border-b-2 border-indigo-500 text-sm font-medium text-slate-900">
                     <GraduationCap className="w-4 h-4 mr-2" />
-                    Student Area
+                    Student Panel
                   </div>
                 )}
                 {user.role === "admin" && (
                   <div className="inline-flex items-center px-1 pt-1 border-b-2 border-indigo-500 text-sm font-medium text-slate-900">
                     <Settings className="w-4 h-4 mr-2" />
-                    Admin Dashboard
+                    Admin Panel
                   </div>
                 )}
               </div>
@@ -171,8 +171,8 @@ export default function App() {
         <div className="max-w-xl mx-auto mt-16 text-center text-slate-600 bg-white rounded-2xl border border-slate-200 p-8">
           <p className="font-medium text-slate-800 mb-2">No tests available</p>
           <p className="text-sm">
-            Ask an admin to create a test in the dashboard. After that, refresh
-            this page.
+            Ask an admin to create a test in EduCare English Test. After that,
+            refresh this page.
           </p>
         </div>
       )}
