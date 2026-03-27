@@ -1298,6 +1298,53 @@ export default function AdminDashboard({
                 Add New Question
               </button>
             </section>
+
+            <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                {saveMessage ? (
+                  <div
+                    className={cn(
+                      "rounded-lg border px-4 py-3 text-sm",
+                      saveMessage.type === "success" &&
+                        "border-emerald-200 bg-emerald-50 text-emerald-700",
+                      saveMessage.type === "error" &&
+                        "border-red-200 bg-red-50 text-red-700",
+                      saveMessage.type === "info" &&
+                        "border-blue-200 bg-blue-50 text-blue-700"
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4" />
+                      <span>{saveMessage.text}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-500">
+                    Review the test details, then save when you&apos;re ready.
+                  </p>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
+                >
+                  {isSaving ? (
+                    <div className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
+                  {isSaving
+                    ? editingTestId
+                      ? "Updating..."
+                      : "Saving..."
+                    : editingTestId
+                    ? "Update Test"
+                    : "Save Test"}
+                </button>
+              </div>
+            </section>
           </>
         )}
       </main>
