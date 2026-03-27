@@ -165,7 +165,11 @@ export default function AdminDashboard({
       if (!res.ok) throw new Error(body.error || "Failed to load tests");
       setTests(body.tests || []);
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching tests:", error);
+      setSaveMessage({
+        type: "error",
+        text: "Failed to load tests. Please try refreshing the page.",
+      });
     } finally {
       setLoadingTests(false);
     }
@@ -446,6 +450,9 @@ export default function AdminDashboard({
       }
 
       setSaveMessage({ type: "success", text: "Test saved successfully!" });
+      
+      // Switch to tests tab to show the newly saved test
+      setActiveTab("tests");
       setTitle("");
       setDuration(60);
       setQuestions([
@@ -458,6 +465,9 @@ export default function AdminDashboard({
           ],
         },
       ]);
+      
+      // Refresh the tests list to show the newly saved test
+      fetchTests();
     } catch (error) {
       console.error("Error saving test:", error);
       setSaveMessage({
