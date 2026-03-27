@@ -15,12 +15,12 @@ export default function BrandLogo({
   priority = false,
 }: BrandLogoProps) {
   return (
-    <div className={cn("flex items-center", className)}>
+    <div className={cn("flex items-center py-1", className)}>
       <Image
-        src="/educare-logo.png"
+        src="/educare-logo.webp"
         alt="EduCare English Test"
-        width={791}
-        height={335}
+        width={512}
+        height={180}
         priority={priority}
         className={cn("h-auto w-full", imageClassName)}
       />

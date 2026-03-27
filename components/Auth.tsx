@@ -57,10 +57,10 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
+        <div className="flex justify-center py-3">
           <BrandLogo
             priority
-            className="w-[220px] sm:w-[280px]"
+            className="w-[170px] sm:w-[220px]"
             imageClassName="object-contain"
           />
         </div>

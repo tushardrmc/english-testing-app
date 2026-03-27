@@ -5,8 +5,8 @@ export const metadata: Metadata = {
   title: "EduCare English Test",
   description: "EduCare English Test for grammar and spoken English practice.",
   icons: {
-    icon: "/educare-logo.png",
-    apple: "/educare-logo.png",
+    icon: "/educare-logo.webp",
+    apple: "/educare-logo.webp",
   },
 };
 
