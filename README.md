@@ -105,7 +105,7 @@ You need a **GitHub** account (free) so Vercel can pull your code. If the projec
 
 ---
 
-## Project layout (short)
+## Project layout (short) key
 
 - `app/api/tests` — list / create tests (admin creates with service role).
 - `app/api/tests/[id]` — load a test for students.
