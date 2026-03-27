@@ -62,6 +62,14 @@ interface AdminDashboardProps {
     email: string;
     role: "admin" | "student";
   };
+  onSave?: () => void;
+  onRefresh?: () => void;
+  saveMessage?: {
+    type: "success" | "error" | "info";
+    text: string;
+  } | null;
+  isSaving?: boolean;
+  activeTab?: AdminTab;
 }
 
 type AdminTab = "create" | "tests" | "results" | "analytics";
@@ -88,8 +96,11 @@ type Submission = {
 
 export default function AdminDashboard({
   user,
+  onSave,
+  onRefresh,
+  activeTab: externalActiveTab,
 }: AdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<AdminTab>("create");
+  const [activeTab, setActiveTab] = useState<AdminTab>(externalActiveTab || "create");
   const [title, setTitle] = useState("");
   const [duration, setDuration] = useState<number>(60);
   const [questions, setQuestions] = useState<Question[]>([
@@ -611,70 +622,8 @@ export default function AdminDashboard({
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-              <BarChart3 className="w-5 h-5 text-white" />
-            </div>
-            <h1 className="text-xl font-bold text-slate-800">
-              EnglishTestPro Admin
-            </h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="text-sm text-slate-600">
-              Welcome, <span className="font-medium text-slate-800">{user.name}</span>
-            </div>
-            {(activeTab === "create" || activeTab === "tests") && (
-              <div className="flex items-center gap-4">
-                {saveMessage && (
-                  <div
-                    className={cn(
-                      "px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-2",
-                      saveMessage.type === "success"
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        : saveMessage.type === "error"
-                        ? "bg-red-50 text-red-700 border border-red-200"
-                        : "bg-blue-50 text-blue-700 border border-blue-200"
-                    )}
-                  >
-                    {saveMessage.type === "success" && <CheckCircle2 className="w-4 h-4" />}
-                    {saveMessage.type === "error" && <AlertCircle className="w-4 h-4" />}
-                    {saveMessage.text}
-                  </div>
-                )}
-                {activeTab === "create" ? (
-                  <button
-                    type="button"
-                    onClick={handleSave}
-                    disabled={isSaving}
-                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-indigo-600 text-white hover:bg-indigo-700 h-10 px-4 py-2 shadow-sm"
-                  >
-                    {isSaving ? (
-                      <div className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                    ) : (
-                      <Save className="h-4 w-4" />
-                    )}
-                    Save Test
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={fetchTests}
-                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors bg-slate-900 text-white hover:bg-slate-800 h-10 px-4 py-2 shadow-sm"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                    Refresh
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <nav className="bg-white border-b border-slate-200 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-3">
           <div className="flex bg-slate-100 p-1 rounded-xl shadow-sm">
             <button
               type="button"
@@ -741,10 +690,7 @@ export default function AdminDashboard({
               Analytics
             </button>
           </div>
-        </div>
-      </nav>
-
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        </section>
         {activeTab === "analytics" ? (
           <div className="space-y-8">
             <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
@@ -861,7 +807,7 @@ export default function AdminDashboard({
                 {tests.map((test) => (
                   <div
                     key={test.id}
-                    className="group border border-slate-200 rounded-xl p-6 hover:border-indigo-300 hover:shadow-md transition-all duration-200"
+                    className="border border-slate-200 rounded-xl p-6"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -892,7 +838,7 @@ export default function AdminDashboard({
                         <button
                           type="button"
                           onClick={() => editTest(test)}
-                          className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors opacity-0 group-hover:opacity-100"
+                          className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-blue-600 text-white"
                           title="Edit test"
                         >
                           <Edit className="w-3.5 h-3.5" />
@@ -902,7 +848,7 @@ export default function AdminDashboard({
                           type="button"
                           disabled={publishingId === test.id || test.is_published}
                           onClick={() => publishTest(test.id)}
-                          className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                          className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-indigo-600 text-white disabled:opacity-50"
                           title={test.is_published ? "Already live" : "Publish test"}
                         >
                           {publishingId === test.id ? (
@@ -916,7 +862,7 @@ export default function AdminDashboard({
                           type="button"
                           onClick={() => deleteTest(test.id)}
                           disabled={deletingId === test.id}
-                          className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors opacity-0 group-hover:opacity-100"
+                          className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-red-600 text-white disabled:opacity-50"
                           title="Delete test permanently"
                         >
                           {deletingId === test.id ? (
