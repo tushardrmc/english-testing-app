@@ -73,6 +73,16 @@ CREATE POLICY "Allow public read access to published tests"
   ON public.tests FOR SELECT
   USING (is_published = TRUE);
 
+CREATE POLICY "Allow admin read access to all tests"
+  ON public.tests FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.role = 'admin'
+    )
+  );
+
 CREATE POLICY "Allow public read access to questions"
   ON public.questions FOR SELECT
   USING (TRUE);

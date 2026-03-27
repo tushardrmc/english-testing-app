@@ -15,10 +15,18 @@ function anonClient() {
 
 /** List tests (public read via RLS). */
 export async function GET(request: Request) {
-  const supabase = anonClient();
   const token = getBearerToken(request);
   const maybeAdmin = await getAdminContextFromToken(token);
   const isAdmin = !("error" in maybeAdmin);
+
+  let supabase;
+  if (isAdmin) {
+    // Use admin client for admins to bypass RLS
+    supabase = maybeAdmin.admin;
+  } else {
+    // Use anon client for students (subject to RLS)
+    supabase = anonClient();
+  }
 
   let query = supabase
     .from("tests")
