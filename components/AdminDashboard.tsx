@@ -537,82 +537,9 @@ export default function AdminDashboard({
     <div className="pb-24">
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <h1 className="text-xl font-semibold text-slate-800">
-              Admin Dashboard
-            </h1>
-            <div className="flex bg-slate-100 p-1 rounded-lg">
-              <button
-                type="button"
-                onClick={() => setActiveTab("create")}
-                className={cn(
-                  "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
-                  activeTab === "create"
-                    ? "bg-white text-indigo-600 shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
-                )}
-              >
-                <span className="inline-flex items-center gap-1.5">
-                  <Plus className="w-4 h-4" /> Create
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("tests")}
-                className={cn(
-                  "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
-                  activeTab === "tests"
-                    ? "bg-white text-indigo-600 shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
-                )}
-              >
-                <span className="inline-flex items-center gap-1.5">
-                  <ListChecks className="w-4 h-4" /> Tests
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("results")}
-                className={cn(
-                  "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
-                  activeTab === "results"
-                    ? "bg-white text-indigo-600 shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
-                )}
-              >
-                <span className="inline-flex items-center gap-1.5">
-                  <FileCheck2 className="w-4 h-4" /> Results
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("analytics")}
-                className={cn(
-                  "px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-2",
-                  activeTab === "analytics"
-                    ? "bg-white text-indigo-600 shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
-                )}
-              >
-                <BarChart3 className="w-4 h-4" />
-                Analytics
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("profile")}
-                className={cn(
-                  "px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-2",
-                  activeTab === "profile"
-                    ? "bg-white text-indigo-600 shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
-                )}
-              >
-                <UserCog className="w-4 h-4" />
-                Profile
-              </button>
-            </div>
-          </div>
-
+          <h1 className="text-xl font-semibold text-slate-800">
+            Admin Dashboard
+          </h1>
           {(activeTab === "create" || activeTab === "tests") && (
             <div className="flex items-center gap-4">
               {saveMessage && (
@@ -655,6 +582,81 @@ export default function AdminDashboard({
           )}
         </div>
       </header>
+
+      <nav className="bg-white border-b border-slate-200">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center">
+          <div className="flex bg-slate-100 p-1 rounded-lg">
+            <button
+              type="button"
+              onClick={() => setActiveTab("create")}
+              className={cn(
+                "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+                activeTab === "create"
+                  ? "bg-white text-indigo-600 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              )}
+            >
+              <span className="inline-flex items-center gap-1.5">
+                <Plus className="w-4 h-4" /> Create
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("tests")}
+              className={cn(
+                "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+                activeTab === "tests"
+                  ? "bg-white text-indigo-600 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              )}
+            >
+              <span className="inline-flex items-center gap-1.5">
+                <ListChecks className="w-4 h-4" /> Tests
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("results")}
+              className={cn(
+                "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+                activeTab === "results"
+                  ? "bg-white text-indigo-600 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              )}
+            >
+              <span className="inline-flex items-center gap-1.5">
+                <FileCheck2 className="w-4 h-4" /> Results
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("analytics")}
+              className={cn(
+                "px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-2",
+                activeTab === "analytics"
+                  ? "bg-white text-indigo-600 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              )}
+            >
+              <BarChart3 className="w-4 h-4" />
+              Analytics
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("profile")}
+              className={cn(
+                "px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-2",
+                activeTab === "profile"
+                  ? "bg-white text-indigo-600 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              )}
+            >
+              <UserCog className="w-4 h-4" />
+              Profile
+            </button>
+          </div>
+        </div>
+      </nav>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {activeTab === "analytics" ? (
