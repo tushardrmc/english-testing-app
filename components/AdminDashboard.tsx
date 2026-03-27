@@ -15,6 +15,7 @@ import {
   RadioTower,
   Search,
   RefreshCw,
+  Edit,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -105,12 +106,14 @@ export default function AdminDashboard({
   ]);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{
-    type: "success" | "error";
+    type: "success" | "error" | "info";
     text: string;
   } | null>(null);
   const [loadingTests, setLoadingTests] = useState(false);
   const [tests, setTests] = useState<SavedTest[]>([]);
   const [publishingId, setPublishingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [editingTestId, setEditingTestId] = useState<string | null>(null);
   const [resultsLoading, setResultsLoading] = useState(false);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [groupByUser, setGroupByUser] = useState<
@@ -434,8 +437,12 @@ export default function AdminDashboard({
     };
 
     try {
-      const response = await fetch("/api/tests", {
-        method: "POST",
+      const isEditing = !!editingTestId;
+      const method = isEditing ? "PUT" : "POST";
+      const url = isEditing ? `/api/tests/${editingTestId}` : "/api/tests";
+
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session?.access_token ?? ""}`,
@@ -446,12 +453,18 @@ export default function AdminDashboard({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to save test");
+        throw new Error(data.error || `Failed to ${isEditing ? 'update' : 'save'} test`);
       }
 
-      setSaveMessage({ type: "success", text: "Test saved successfully!" });
+      setSaveMessage({ 
+        type: "success", 
+        text: `Test ${isEditing ? 'updated' : 'saved'} successfully!` 
+      });
       
-      // Switch to tests tab to show the newly saved test
+      // Clear editing state
+      setEditingTestId(null);
+      
+      // Switch to tests tab to show the test
       setActiveTab("tests");
       setTitle("");
       setDuration(60);
@@ -511,6 +524,89 @@ export default function AdminDashboard({
     }
   };
 
+  const editTest = async (test: SavedTest) => {
+    // Fetch the full test data including questions
+    try {
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      
+      const response = await fetch(`/api/tests/${test.id}`, {
+        headers: {
+          Authorization: `Bearer ${session?.access_token ?? ""}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch test details");
+      }
+      
+      const data = await response.json();
+      
+      // Populate the form with the test data
+      setTitle(data.title);
+      setDuration(data.duration_minutes);
+      setQuestions(data.questions.map((q: any) => ({
+        id: q.id,
+        text: q.text,
+        options: q.options.map((o: any) => ({
+          id: o.id,
+          text: o.text,
+          isCorrect: o.isCorrect,
+        })),
+      })));
+      
+      // Set editing mode
+      setEditingTestId(test.id);
+      
+      // Switch to create tab for editing
+      setActiveTab("create");
+      setSaveMessage({ type: "info", text: `Editing "${data.title}". Make your changes and save.` });
+    } catch (error) {
+      setSaveMessage({
+        type: "error",
+        text: error instanceof Error ? error.message : "Failed to load test for editing.",
+      });
+    }
+  };
+
+  const deleteTest = async (testId: string) => {
+    if (!confirm("Are you sure you want to delete this test? This action cannot be undone.")) {
+      return;
+    }
+
+    setDeletingId(testId);
+    try {
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      
+      const response = await fetch(`/api/tests/${testId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${session?.access_token ?? ""}`,
+        },
+      });
+      
+      if (!response.ok) {
+        const body = await response.json();
+        throw new Error(body.error || "Failed to delete test");
+      }
+      
+      await fetchTests();
+      setSaveMessage({ type: "success", text: "Test deleted successfully." });
+    } catch (error) {
+      setSaveMessage({
+        type: "error",
+        text: error instanceof Error ? error.message : "Failed to delete test.",
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const saveProfile = async () => {
     if (!profileName.trim()) return;
     setProfileSaving(true);
@@ -556,7 +652,9 @@ export default function AdminDashboard({
                     "text-sm font-medium",
                     saveMessage.type === "success"
                       ? "text-emerald-600"
-                      : "text-red-600"
+                      : saveMessage.type === "error"
+                      ? "text-red-600"
+                      : "text-blue-600"
                   )}
                 >
                   {saveMessage.text}
@@ -729,6 +827,27 @@ export default function AdminDashboard({
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => editTest(test)}
+                        className="text-xs px-3 py-1.5 rounded-md bg-slate-600 text-white hover:bg-slate-700"
+                      >
+                        <Edit className="w-3.5 h-3.5 inline mr-1" />
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteTest(test.id)}
+                        disabled={deletingId === test.id}
+                        className="text-xs px-3 py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+                      >
+                        {deletingId === test.id ? (
+                          <div className="w-3.5 h-3.5 inline mr-1 rounded-full border border-white/30 border-t-white animate-spin" />
+                        ) : (
+                          <Trash2 className="w-3.5 h-3.5 inline mr-1" />
+                        )}
+                        Delete
+                      </button>
                       {test.is_published ? (
                         <span className="inline-flex items-center gap-1.5 text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full">
                           <RadioTower className="w-3.5 h-3.5" /> Live now
@@ -976,6 +1095,34 @@ export default function AdminDashboard({
         ) : (
           <>
             <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-slate-800">
+                  {editingTestId ? "Edit Test" : "Create Test"}
+                </h2>
+                {editingTestId && (
+                  <button
+                    onClick={() => {
+                      setEditingTestId(null);
+                      setTitle("");
+                      setDuration(60);
+                      setQuestions([
+                        {
+                          id: crypto.randomUUID(),
+                          text: "",
+                          options: [
+                            { id: crypto.randomUUID(), text: "", isCorrect: true },
+                            { id: crypto.randomUUID(), text: "", isCorrect: false },
+                          ],
+                        },
+                      ]);
+                      setSaveMessage({ type: "info", text: "Cancelled editing. Create a new test instead." });
+                    }}
+                    className="text-sm text-slate-600 hover:text-slate-800"
+                  >
+                    Cancel Edit
+                  </button>
+                )}
+              </div>
               <div className="space-y-4">
                 <div>
                   <label
