@@ -119,7 +119,8 @@ export default function AdminDashboard({
   const [groupByTest, setGroupByTest] = useState<
     { test_id: string; title: string; submissions: number; avg_percentage: number }[]
   >([]);
-  const [resultFilter, setResultFilter] = useState({ userId: "", testId: "" });
+  const [selectedTest, setSelectedTest] = useState<string | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [profileName, setProfileName] = useState(user.name);
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMessage, setProfileMessage] = useState<string | null>(null);
@@ -177,10 +178,7 @@ export default function AdminDashboard({
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      const params = new URLSearchParams();
-      if (resultFilter.userId) params.set("userId", resultFilter.userId);
-      if (resultFilter.testId) params.set("testId", resultFilter.testId);
-      const res = await fetch(`/api/admin/results?${params.toString()}`, {
+      const res = await fetch(`/api/admin/results`, {
         headers: {
           Authorization: `Bearer ${session?.access_token ?? ""}`,
         },
@@ -259,7 +257,7 @@ export default function AdminDashboard({
       fetchResults();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, resultFilter.userId, resultFilter.testId]);
+  }, [activeTab]);
 
   const chartOptions = {
     responsive: true,
@@ -746,122 +744,175 @@ export default function AdminDashboard({
           </section>
         ) : activeTab === "results" ? (
           <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
-            <h2 className="text-lg font-semibold text-slate-800">
-              Student results
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm text-slate-600">Filter by student</label>
-                <div className="mt-1 relative">
-                  <Search className="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" />
-                  <select
-                    value={resultFilter.userId}
-                    onChange={(e) =>
-                      setResultFilter((p) => ({ ...p, userId: e.target.value }))
-                    }
-                    className="w-full h-10 pl-8 pr-3 rounded-md border border-slate-300 text-sm"
-                  >
-                    <option value="">All students</option>
-                    {groupByUser.map((u) => (
-                      <option key={u.user_id} value={u.user_id}>
-                        {u.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="text-sm text-slate-600">Filter by test</label>
-                <div className="mt-1 relative">
-                  <Search className="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" />
-                  <select
-                    value={resultFilter.testId}
-                    onChange={(e) =>
-                      setResultFilter((p) => ({ ...p, testId: e.target.value }))
-                    }
-                    className="w-full h-10 pl-8 pr-3 rounded-md border border-slate-300 text-sm"
-                  >
-                    <option value="">All tests</option>
-                    {groupByTest.map((t) => (
-                      <option key={t.test_id} value={t.test_id}>
-                        {t.title}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="border border-slate-200 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-slate-700 mb-3">
-                  By student
-                </h3>
-                <div className="space-y-2 max-h-56 overflow-auto">
-                  {groupByUser.map((u) => (
-                    <div key={u.user_id} className="text-sm text-slate-700 flex justify-between">
-                      <span>{u.name}</span>
-                      <span>
-                        {u.submissions} tests · {u.avg_percentage}%
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="border border-slate-200 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-slate-700 mb-3">
-                  By test
-                </h3>
-                <div className="space-y-2 max-h-56 overflow-auto">
-                  {groupByTest.map((t) => (
-                    <div key={t.test_id} className="text-sm text-slate-700 flex justify-between">
-                      <span>{t.title}</span>
-                      <span>
-                        {t.submissions} attempts · {t.avg_percentage}%
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-sm font-semibold text-slate-700 mb-3">
-                Latest submissions
-              </h3>
-              {resultsLoading ? (
-                <p className="text-sm text-slate-500">Loading results...</p>
-              ) : submissions.length === 0 ? (
-                <p className="text-sm text-slate-500">No submissions yet.</p>
-              ) : (
-                <div className="overflow-x-auto border border-slate-200 rounded-lg">
-                  <table className="w-full text-sm">
-                    <thead className="bg-slate-50 text-slate-600">
-                      <tr>
-                        <th className="text-left p-3">Student</th>
-                        <th className="text-left p-3">Test</th>
-                        <th className="text-left p-3">Score</th>
-                        <th className="text-left p-3">Time</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {submissions.map((s) => (
-                        <tr key={s.id} className="border-t border-slate-100">
-                          <td className="p-3">{s.user_name}</td>
-                          <td className="p-3">{s.test_title}</td>
-                          <td className="p-3">
-                            {s.score}/{s.total} ({s.percentage}%)
-                          </td>
-                          <td className="p-3 text-slate-500">
-                            {new Date(s.created_at).toLocaleString()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-slate-800">
+                Student Results
+              </h2>
+              {(selectedTest || selectedStudent) && (
+                <button
+                  onClick={() => {
+                    setSelectedStudent(null);
+                    setSelectedTest(null);
+                  }}
+                  className="text-sm text-indigo-600 hover:text-indigo-800"
+                >
+                  ← Back to Tests
+                </button>
               )}
             </div>
+
+            {resultsLoading ? (
+              <p className="text-sm text-slate-500">Loading results...</p>
+            ) : !selectedTest ? (
+              // Show all tests
+              <div>
+                <h3 className="text-md font-medium text-slate-700 mb-4">
+                  Select a Test
+                </h3>
+                {groupByTest.length === 0 ? (
+                  <p className="text-sm text-slate-500">No tests with submissions yet.</p>
+                ) : (
+                  <div className="grid gap-3">
+                    {groupByTest.map((test) => (
+                      <div
+                        key={test.test_id}
+                        onClick={() => setSelectedTest(test.test_id)}
+                        className="border border-slate-200 rounded-lg p-4 hover:border-indigo-300 hover:bg-indigo-50 cursor-pointer transition-colors"
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h4 className="font-medium text-slate-800">{test.title}</h4>
+                            <p className="text-sm text-slate-600">
+                              {test.submissions} submission{test.submissions !== 1 ? 's' : ''} · Average: {test.avg_percentage}%
+                            </p>
+                          </div>
+                          <div className="text-slate-400">
+                            →
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : !selectedStudent ? (
+              // Show students for selected test
+              <div>
+                <h3 className="text-md font-medium text-slate-700 mb-4">
+                  Students for: {groupByTest.find(t => t.test_id === selectedTest)?.title}
+                </h3>
+                {(() => {
+                  const testSubmissions = submissions.filter(s => s.test_id === selectedTest);
+                  const students = [...new Set(testSubmissions.map(s => s.user_id))];
+                  
+                  return students.length === 0 ? (
+                    <p className="text-sm text-slate-500">No submissions for this test yet.</p>
+                  ) : (
+                    <div className="grid gap-3">
+                      {students.map((studentId) => {
+                        const studentSubs = testSubmissions.filter(s => s.user_id === studentId);
+                        const latestSub = studentSubs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+                        
+                        return (
+                          <div
+                            key={studentId}
+                            onClick={() => setSelectedStudent(studentId)}
+                            className="border border-slate-200 rounded-lg p-4 hover:border-indigo-300 hover:bg-indigo-50 cursor-pointer transition-colors"
+                          >
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <h4 className="font-medium text-slate-800">{latestSub.user_name}</h4>
+                                <p className="text-sm text-slate-600">
+                                  Best Score: {Math.max(...studentSubs.map(s => s.percentage))}% · 
+                                  Attempts: {studentSubs.length} · 
+                                  Latest: {new Date(latestSub.created_at).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <div className="text-slate-400">
+                                →
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+              </div>
+            ) : (
+              // Show detailed results for selected student and test
+              <div>
+                <h3 className="text-md font-medium text-slate-700 mb-4">
+                  Detailed Results
+                </h3>
+                {(() => {
+                  const studentSubs = submissions.filter(s => s.user_id === selectedStudent && s.test_id === selectedTest);
+                  
+                  return studentSubs.length === 0 ? (
+                    <p className="text-sm text-slate-500">No submissions found.</p>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="bg-slate-50 rounded-lg p-4">
+                        <h4 className="font-medium text-slate-800 mb-2">
+                          {studentSubs[0].user_name} - {studentSubs[0].test_title}
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <span className="text-slate-600">Total Attempts:</span>
+                            <span className="ml-2 font-medium">{studentSubs.length}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-600">Best Score:</span>
+                            <span className="ml-2 font-medium">{Math.max(...studentSubs.map(s => s.percentage))}%</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-600">Latest Attempt:</span>
+                            <span className="ml-2 font-medium">
+                              {new Date(Math.max(...studentSubs.map(s => new Date(s.created_at).getTime()))).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 className="font-medium text-slate-800 mb-3">All Attempts</h4>
+                        <div className="space-y-2">
+                          {studentSubs
+                            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                            .map((sub, index) => (
+                            <div key={sub.id} className="border border-slate-200 rounded-lg p-3">
+                              <div className="flex justify-between items-center">
+                                <div>
+                                  <span className="text-sm font-medium">
+                                    Attempt {studentSubs.length - index}
+                                  </span>
+                                  <span className="text-sm text-slate-600 ml-4">
+                                    {new Date(sub.created_at).toLocaleString()}
+                                  </span>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-lg font-semibold text-slate-800">
+                                    {sub.score}/{sub.total} ({sub.percentage}%)
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                        <h4 className="font-medium text-amber-800 mb-2">Question Details</h4>
+                        <p className="text-sm text-amber-700">
+                          Detailed question-by-question breakdown is not yet implemented. 
+                          This feature requires additional database schema changes to store individual question responses.
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
           </section>
         ) : activeTab === "profile" ? (
           <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
