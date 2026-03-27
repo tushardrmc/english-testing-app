@@ -209,6 +209,17 @@ export default function AdminDashboard({
   };
 
   useEffect(() => {
+    if (activeTab === "tests") {
+      fetchTests();
+      return;
+    }
+
+    if (activeTab === "results") {
+      fetchResults();
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
     if (activeTab !== "analytics") return;
     let cancelled = false;
 
@@ -259,6 +270,11 @@ export default function AdminDashboard({
   }, [activeTab]);
 
   useEffect(() => {
+    const hash = window.location.hash.replace("#", "");
+    if (["create", "tests", "results", "analytics"].includes(hash)) {
+      setActiveTab(hash as AdminTab);
+    }
+
     const handlePopState = () => {
       // Handle browser back/forward buttons
       const hash = window.location.hash.replace('#', '');
